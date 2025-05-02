@@ -6,6 +6,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
+  // Disable server components since we're using client-side only features
+  experimental: {
+    appDir: true,
+  },
 }
 
 module.exports = nextConfig

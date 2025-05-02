@@ -1,18 +1,11 @@
 'use client';
 
-import React from 'react';
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Switch } from '@headlessui/react';
 import dynamic from 'next/dynamic';
 
-const materials = [
-  { name: 'Copper', resistivity: 1.68e-8, color: '#b87333' },
-  { name: 'Iron', resistivity: 9.71e-8, color: '#8c8c8c' },
-  { name: 'Silver', resistivity: 1.59e-8, color: '#c0c0c0' },
-  { name: 'Aluminum', resistivity: 2.65e-8, color: '#848789' }
-];
-
+// Use dynamic import with no SSR for Three.js component
 const ThreeVisualization = dynamic(
   () => import('../components/ThreeVisualization'),
   { 
@@ -28,11 +21,27 @@ const ThreeVisualization = dynamic(
   }
 );
 
+const materials = [
+  { name: 'Copper', resistivity: 1.68e-8, color: '#b87333' },
+  { name: 'Iron', resistivity: 9.71e-8, color: '#a19d94' },
+  { name: 'Aluminum', resistivity: 2.65e-8, color: '#848789' }
+];
+
 export default function Home() {
+  const [mounted, setMounted] = useState(false);
   const [isEnabled, setIsEnabled] = useState(true);
   const [material, setMaterial] = useState(materials[0]);
   const [radius, setRadius] = useState(1);
   const [length, setLength] = useState(1);
+
+  // Only render client-side
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return null;
+  }
 
   // Calculate resistance
   const area = Math.PI * Math.pow(radius / 1000, 2); // Convert mm to m
