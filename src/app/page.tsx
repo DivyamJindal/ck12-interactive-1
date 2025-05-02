@@ -1,11 +1,10 @@
 'use client';
 
+import React from 'react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Switch } from '@headlessui/react';
-import dynamic from 'next/dynamic';
-
-const ThreeVisualization = dynamic(() => import('../components/ThreeVisualization'), { ssr: false });
+import ThreeVisualization from '../components/ThreeVisualization';
 
 const materials = [
   { name: 'Copper', resistivity: 1.68e-8, color: '#b87333' },
