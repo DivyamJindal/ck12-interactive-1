@@ -108,6 +108,7 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
 
   return (
     <group>
+      {/* Wire */}
       <mesh ref={wireRef} castShadow receiveShadow>
         <cylinderGeometry args={[radius * 0.1, radius * 0.1, length * 2, 16, 1]} />
         <meshStandardMaterial
@@ -119,6 +120,33 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
         />
       </mesh>
 
+      {/* End Caps */}
+      <mesh position={[0, length, 0]} castShadow>
+        <cylinderGeometry args={[radius * 0.15, radius * 0.15, 0.2, 16]} />
+        <meshStandardMaterial color="#333" metalness={0.7} roughness={0.3} />
+      </mesh>
+      <mesh position={[0, -length, 0]} castShadow>
+        <cylinderGeometry args={[radius * 0.15, radius * 0.15, 0.2, 16]} />
+        <meshStandardMaterial color="#333" metalness={0.7} roughness={0.3} />
+      </mesh>
+
+      {/* Battery */}
+      <group position={[0, -length - 0.5, 0]}>
+        <mesh castShadow>
+          <boxGeometry args={[0.4, 0.8, 0.4]} />
+          <meshStandardMaterial color="#444" metalness={0.5} roughness={0.5} />
+        </mesh>
+        <mesh position={[0.15, 0.3, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 0.2, 16]} />
+          <meshStandardMaterial color="#666" />
+        </mesh>
+        <mesh position={[-0.15, 0.2, 0]}>
+          <cylinderGeometry args={[0.05, 0.05, 0.4, 16]} />
+          <meshStandardMaterial color="#666" />
+        </mesh>
+      </group>
+
+      {/* Bulb */}
       <group position={[0, length + 0.5, 0]}>
         <mesh castShadow>
           <sphereGeometry args={[0.25, 16, 16]} />
@@ -160,17 +188,45 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
         )}
       </group>
 
+      {/* Circuit Board */}
       <group position={[0, -2, 0]}>
         <mesh receiveShadow>
           <boxGeometry args={[4, 0.1, 3]} />
           <meshStandardMaterial color="#4CAF50" roughness={0.8} />
         </mesh>
+
+        {/* Circuit traces */}
+        <mesh position={[0, 0.06, 0]}>
+          <torusGeometry args={[1, 0.03, 8, 32]} />
+          <meshStandardMaterial color="#FFD700" metalness={0.8} roughness={0.2} />
+        </mesh>
+
+        {/* Component indicators */}
+        {[0, Math.PI/2, Math.PI, Math.PI*3/2].map((angle, i) => (
+          <group key={i} position={[Math.cos(angle), 0.06, Math.sin(angle)]}>
+            <mesh>
+              <boxGeometry args={[0.2, 0.02, 0.2]} />
+              <meshStandardMaterial color="#2196F3" />
+            </mesh>
+          </group>
+        ))}
       </group>
 
+      {/* Current Particles */}
       <group ref={particlesRef} />
 
+      {/* Spotlights */}
       <spotLight
         position={[2, 2, 2]}
+        angle={0.6}
+        penumbra={0.5}
+        intensity={isEnabled ? brightness * 3 : 0.5}
+        color="#ffff88"
+        distance={10}
+        castShadow
+      />
+      <spotLight
+        position={[-2, 2, -2]}
         angle={0.6}
         penumbra={0.5}
         intensity={isEnabled ? brightness * 3 : 0.5}
