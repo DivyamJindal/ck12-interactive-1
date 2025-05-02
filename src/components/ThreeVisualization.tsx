@@ -1,10 +1,9 @@
 'use client';
 
-import React, { useEffect, useRef, useState, Suspense } from 'react';
+import React, { useEffect, useRef, Suspense } from 'react';
 import { Canvas, useFrame } from '@react-three/fiber';
-import { OrbitControls, Grid, Environment, ContactShadows, useHelper } from '@react-three/drei';
+import { OrbitControls, Grid, Environment, ContactShadows } from '@react-three/drei';
 import * as THREE from 'three';
-import { motion } from 'framer-motion';
 
 interface ThreeVisualizationProps {
   isEnabled: boolean;
@@ -22,13 +21,11 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
   const particlesRef = useRef<THREE.Group>(null);
   const particles = useRef<THREE.Mesh[]>([]);
   const speeds = useRef<number[]>([]);
-  const lightRef = useRef<THREE.SpotLight>(null);
   const glowRef = useRef<THREE.Mesh>(null);
 
   // Calculate brightness based on resistance
   const area = Math.PI * Math.pow(radius / 1000, 2);
   const resistance = (material.resistivity * length) / area;
-  const current = isEnabled ? 12 / resistance : 0;
   const brightness = isEnabled ? Math.min(1, 2 / resistance) : 0;
   const glowIntensity = isEnabled ? Math.min(5, 10 / resistance) : 0;
 
@@ -204,7 +201,6 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
 
       {/* Spotlights */}
       <spotLight
-        ref={lightRef}
         position={[2, 2, 2]}
         angle={0.6}
         penumbra={0.5}
