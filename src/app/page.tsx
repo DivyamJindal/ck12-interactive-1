@@ -4,7 +4,7 @@ import React from 'react';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Switch } from '@headlessui/react';
-import ThreeVisualization from '../components/ThreeVisualization';
+import dynamic from 'next/dynamic';
 
 const materials = [
   { name: 'Copper', resistivity: 1.68e-8, color: '#b87333' },
@@ -12,6 +12,21 @@ const materials = [
   { name: 'Silver', resistivity: 1.59e-8, color: '#c0c0c0' },
   { name: 'Aluminum', resistivity: 2.65e-8, color: '#848789' }
 ];
+
+const ThreeVisualization = dynamic(
+  () => import('../components/ThreeVisualization'),
+  { 
+    ssr: false,
+    loading: () => (
+      <div className="w-full h-full flex items-center justify-center bg-gray-900">
+        <div className="text-white text-center">
+          <div className="mb-2">Loading 3D Scene...</div>
+          <div className="text-sm text-gray-400">This may take a few seconds</div>
+        </div>
+      </div>
+    )
+  }
+);
 
 export default function Home() {
   const [isEnabled, setIsEnabled] = useState(true);

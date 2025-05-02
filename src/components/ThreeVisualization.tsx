@@ -22,12 +22,29 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
   const particles = useRef<THREE.Mesh[]>([]);
   const speeds = useRef<number[]>([]);
   const glowRef = useRef<THREE.Mesh>(null);
+  const frameCount = useRef(0);
 
   // Calculate brightness based on resistance
   const area = Math.PI * Math.pow(radius / 1000, 2);
   const resistance = (material.resistivity * length) / area;
   const brightness = isEnabled ? Math.min(1, 2 / resistance) : 0;
   const glowIntensity = isEnabled ? Math.min(5, 10 / resistance) : 0;
+
+  useEffect(() => {
+    // Cleanup function
+    return () => {
+      // Dispose of geometries and materials
+      particles.current.forEach(particle => {
+        if (particle.geometry) particle.geometry.dispose();
+        if (particle.material instanceof THREE.Material) particle.material.dispose();
+      });
+      
+      if (wireRef.current) {
+        if (wireRef.current.geometry) wireRef.current.geometry.dispose();
+        if (wireRef.current.material instanceof THREE.Material) wireRef.current.material.dispose();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (!particlesRef.current) return;
@@ -60,16 +77,12 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
         particlesRef.current.add(particle);
       }
     }
-
-    return () => {
-      particles.current.forEach(particle => {
-        particle.geometry.dispose();
-        (particle.material as THREE.Material).dispose();
-      });
-    };
   }, [isEnabled]);
 
   useFrame(({ clock }) => {
+    frameCount.current += 1;
+    if (frameCount.current > 1000) return; // Limit animation frames
+
     if (!isEnabled || !particlesRef.current) return;
 
     particles.current.forEach((particle, i) => {
@@ -82,7 +95,6 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
       particle.position.z = Math.sin(angle) * (radius * 0.15);
     });
 
-    // Make the wire glow when powered
     if (wireRef.current) {
       const emissiveIntensity = isEnabled ? 0.2 : 0;
       (wireRef.current.material as THREE.MeshStandardMaterial).emissiveIntensity = emissiveIntensity;
@@ -96,50 +108,20 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
 
   return (
     <group>
-      {/* Wire */}
       <mesh ref={wireRef} castShadow receiveShadow>
-        <cylinderGeometry args={[radius * 0.1, radius * 0.1, length * 2, 32, 32, false]} />
+        <cylinderGeometry args={[radius * 0.1, radius * 0.1, length * 2, 16, 1]} />
         <meshStandardMaterial
           color={material.color}
           metalness={0.9}
           roughness={0.1}
-          envMapIntensity={1.0}
           emissive={material.color}
           emissiveIntensity={0}
         />
       </mesh>
 
-      {/* End Caps */}
-      <mesh position={[0, length, 0]} castShadow>
-        <cylinderGeometry args={[radius * 0.15, radius * 0.15, 0.2, 32]} />
-        <meshStandardMaterial color="#333" metalness={0.7} roughness={0.3} />
-      </mesh>
-      <mesh position={[0, -length, 0]} castShadow>
-        <cylinderGeometry args={[radius * 0.15, radius * 0.15, 0.2, 32]} />
-        <meshStandardMaterial color="#333" metalness={0.7} roughness={0.3} />
-      </mesh>
-
-      {/* Battery */}
-      <group position={[0, -length - 0.5, 0]}>
-        <mesh castShadow>
-          <boxGeometry args={[0.4, 0.8, 0.4]} />
-          <meshStandardMaterial color="#444" metalness={0.5} roughness={0.5} />
-        </mesh>
-        <mesh position={[0.15, 0.3, 0]}>
-          <cylinderGeometry args={[0.05, 0.05, 0.2, 16]} />
-          <meshStandardMaterial color="#666" />
-        </mesh>
-        <mesh position={[-0.15, 0.2, 0]}>
-          <cylinderGeometry args={[0.05, 0.05, 0.4, 16]} />
-          <meshStandardMaterial color="#666" />
-        </mesh>
-      </group>
-
-      {/* Bulb */}
       <group position={[0, length + 0.5, 0]}>
-        {/* Main bulb glass */}
         <mesh castShadow>
-          <sphereGeometry args={[0.25, 32, 32]} />
+          <sphereGeometry args={[0.25, 16, 16]} />
           <meshStandardMaterial
             color={isEnabled ? "#ffff88" : "#fff"}
             metalness={0.1}
@@ -149,13 +131,11 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
           />
         </mesh>
         
-        {/* Bulb base */}
         <mesh position={[0, -0.2, 0]}>
-          <cylinderGeometry args={[0.1, 0.15, 0.3, 32]} />
+          <cylinderGeometry args={[0.1, 0.15, 0.3, 16]} />
           <meshStandardMaterial color="#666" metalness={0.7} roughness={0.3} />
         </mesh>
 
-        {/* Inner glow */}
         {isEnabled && (
           <mesh>
             <sphereGeometry args={[0.2, 16, 16]} />
@@ -167,7 +147,6 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
           </mesh>
         )}
 
-        {/* Outer glow */}
         {isEnabled && (
           <mesh ref={glowRef}>
             <sphereGeometry args={[0.4, 16, 16]} />
@@ -181,25 +160,15 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
         )}
       </group>
 
-      {/* Circuit Board */}
       <group position={[0, -2, 0]}>
-        {/* Base board */}
         <mesh receiveShadow>
           <boxGeometry args={[4, 0.1, 3]} />
           <meshStandardMaterial color="#4CAF50" roughness={0.8} />
         </mesh>
-
-        {/* Circuit traces */}
-        <mesh position={[0, 0.06, 0]}>
-          <torusGeometry args={[1, 0.03, 8, 50]} />
-          <meshStandardMaterial color="#FFD700" metalness={0.8} roughness={0.2} />
-        </mesh>
       </group>
 
-      {/* Current Particles */}
       <group ref={particlesRef} />
 
-      {/* Spotlights */}
       <spotLight
         position={[2, 2, 2]}
         angle={0.6}
@@ -209,17 +178,7 @@ const WireSystem = ({ isEnabled, material, radius, length }: ThreeVisualizationP
         distance={10}
         castShadow
       />
-      <spotLight
-        position={[-2, 2, -2]}
-        angle={0.6}
-        penumbra={0.5}
-        intensity={isEnabled ? brightness * 3 : 0.5}
-        color="#ffff88"
-        distance={10}
-        castShadow
-      />
 
-      {/* Point light for bulb glow */}
       {isEnabled && (
         <pointLight
           position={[0, length + 0.5, 0]}
@@ -282,11 +241,19 @@ const ThreeVisualization: React.FC<ThreeVisualizationProps> = (props) => {
   return (
     <div className="w-full h-full">
       <ErrorBoundary>
-        <Suspense fallback={<div className="w-full h-full bg-gray-900 flex items-center justify-center text-white">Loading 3D Scene...</div>}>
+        <Suspense fallback={
+          <div className="w-full h-full bg-gray-900 flex items-center justify-center text-white">
+            <div className="text-center">
+              <div className="mb-2">Loading 3D Scene...</div>
+              <div className="text-sm text-gray-400">This may take a few seconds</div>
+            </div>
+          </div>
+        }>
           <Canvas
             shadows
-            dpr={[1, 2]}
+            dpr={[1, 1.5]}
             camera={{ position: [4, 2, 4], fov: 50 }}
+            gl={{ antialias: false }}
             performance={{ min: 0.5 }}
           >
             <Scene {...props} />
