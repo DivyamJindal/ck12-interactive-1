@@ -4,16 +4,8 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  // Configure for GitHub Pages
-  basePath: '',
-  assetPrefix: '',
-  // Disable server-side features
-  experimental: {
-    appDir: true,
-  },
-  // Ensure output is static
-  distDir: 'dist',
-  trailingSlash: true,
+  basePath: '/ck12-interactive-1',
+  assetPrefix: '/ck12-interactive-1/',
 }
 
 module.exports = nextConfig
