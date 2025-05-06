@@ -4,8 +4,10 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  basePath: '/ck12-interactive-1',
-  assetPrefix: '/ck12-interactive-1/',
+  // Disable server-side features
+  experimental: {
+    appDir: true,
+  },
 }
 
 module.exports = nextConfig
